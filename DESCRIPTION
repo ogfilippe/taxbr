@@ -14,3 +14,6 @@ Imports:
     httr2,
     purrr,
     tibble
+Depends: 
+    R (>= 2.10)
+LazyData: true
