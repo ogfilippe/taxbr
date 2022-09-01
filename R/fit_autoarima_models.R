@@ -1,10 +1,14 @@
 #' Fit Best ARIMA Models by AICc
 #'
 #' @export
-fit_autoarima_models <- function(.data, specs, top_n = 5) {
+fit_autoarima_models <- function(.data, ..., top_n = 20) {
+
+  specs <- dplyr::bind_rows(..., .id = "id") |>
+    dplyr::group_by(id) |>
+    dplyr::slice_min(aicc, n = top_n) |>
+    dplyr::ungroup()
 
   params <- specs |>
-    head(top_n) |>
     dplyr::mutate(orders = gsub("[^0-9]+", "", model)) |>
     dplyr::transmute(
       p = 1, d = 2, q = 3,
