@@ -3,6 +3,6 @@
 .RData
 .Ruserdata
 temp/
-models/
 notebooks/
 *.csv
+*.Rmd
