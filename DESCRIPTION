@@ -12,6 +12,8 @@ RoxygenNote: 7.2.1
 Imports: 
     dplyr,
     httr2,
+    modeltime,
+    parsnip,
     purrr,
     tibble
 Depends: 

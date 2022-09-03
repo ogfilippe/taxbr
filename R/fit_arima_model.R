@@ -13,10 +13,8 @@ fit_arima_model <- function(.data, p, d, q, P, D, Q, constant) {
       include.constant = !!constant
     )
 
-  wf <- get_arima_workflow(.data, model = arima_spec)
-
   tryCatch(
-    wf |> parsnip::fit(data = .data),
+    arima_spec |> parsnip::fit(tax ~ ., data = .data),
     error = function(cond) NULL
   )
 }
