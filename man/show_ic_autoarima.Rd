@@ -6,6 +6,7 @@
 \usage{
 show_ic_autoarima(
   .data,
+  .rec,
   non_seas = 4,
   seas = 2,
   max_order = 6,

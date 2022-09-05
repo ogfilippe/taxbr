@@ -1,7 +1,7 @@
 #' Show ARIMA Specifications by AICc
 #'
 #' @export
-show_ic_autoarima <- function(.data,
+show_ic_autoarima <- function(.data, .rec,
                               non_seas  = 4,
                               seas      = 2,
                               max_order = 6,
@@ -22,32 +22,25 @@ show_ic_autoarima <- function(.data,
       trace         = TRUE,
       approximation = FALSE,
       ic            = "aicc",
-      lambda        = NULL,
-      allowdrift    = TRUE
+      allowdrift    = FALSE,
+      lambda        = NULL
     )
 
+  wf <- workflows::workflow() |>
+    workflows::add_recipe(.rec) |>
+    workflows::add_model(autoarima_spec)
+
   txt <- capture.output(
-    { res <- autoarima_spec |> parsnip::fit(tax ~ ., data = .data) }
+    { res <- wf |> parsnip::fit(data = .data) }
   )
 
   con <- textConnection(txt)
-  df <- con |> read.table(sep = ":") |> head(-1)
+  df <- con |> read.table(sep = ":", strip.white = TRUE) |> head(-1)
   close(con)
 
   df |>
     tibble::as_tibble() |>
-    dplyr::mutate(
-      model  = V1,
-      aicc   = V2 |> trimws() |> as.numeric(),
-      orders = gsub("[^0-9]+", "", model),
-      p = 1, d = 2, q = 3,
-      P = 4, D = 5, Q = 6
-    ) |>
-    dplyr::arrange(aicc) |>
-    dplyr::transmute(
-      dplyr::across(p:Q, ~ orders |> substr(.x, .x) |> as.numeric()),
-      constant = grepl("drift", model)
-    ) |>
-    purrr::transpose()
+    dplyr::transmute(model = V1, aicc = as.numeric(V2)) |>
+    dplyr::arrange(aicc)
 }
 

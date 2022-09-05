@@ -4,7 +4,7 @@
 \alias{fit_ic_autoarima}
 \title{Fit Best ARIMA Models by AICc}
 \usage{
-fit_ic_autoarima(.data, specs, top_n = 5)
+fit_ic_autoarima(.specs, .data, .rec, top_n)
 }
 \description{
 Fit Best ARIMA Models by AICc

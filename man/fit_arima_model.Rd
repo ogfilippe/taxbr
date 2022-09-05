@@ -4,7 +4,7 @@
 \alias{fit_arima_model}
 \title{Fit ARIMA Model}
 \usage{
-fit_arima_model(.data, p, d, q, P, D, Q, constant)
+fit_arima_model(.data, .rec, p, d, q, P, D, Q)
 }
 \description{
 Fit ARIMA Model

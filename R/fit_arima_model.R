@@ -1,7 +1,8 @@
 #' Fit ARIMA Model
 #'
 #' @export
-fit_arima_model <- function(.data, p, d, q, P, D, Q, constant) {
+fit_arima_model <- function(.data, .rec,
+                            p, d, q, P, D, Q) {
 
   arima_spec <- modeltime::arima_reg(
     "regression", 12,
@@ -10,11 +11,16 @@ fit_arima_model <- function(.data, p, d, q, P, D, Q, constant) {
   ) |>
     parsnip::set_engine(
       "arima",
-      include.constant = !!constant
+      include.constant = FALSE
     )
 
+  wf <- workflows::workflow() |>
+    workflows::add_recipe(.rec) |>
+    workflows::add_model(arima_spec)
+
   tryCatch(
-    arima_spec |> parsnip::fit(tax ~ ., data = .data),
+    wf |> parsnip::fit(data = .data),
+    # TODO: show which specifications failed
     error = function(cond) NULL
   )
 }
