@@ -1,7 +1,7 @@
 #' Deflate Monetary Values by Brazilian Price Indices
 #'
 #' @export
-deflate <- function(dates, values, ref, index = "IPCA") {
+deflate_vec <- function(dates, values, ref, index = "IPCA") {
 
   dates <- as.Date(dates)
   index <- match.arg(index)
