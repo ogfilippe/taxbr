@@ -60,11 +60,12 @@ tax_curacy_tbl <- tax_real_tbl |>
 
 
 # ---- 5. Exportação ----
-income_tax_series <- list(
+income_tax <- list(
   raw     = list(incidences = raw_incidences_tbl, regions = raw_regions_tbl),
   nominal = tax_nominal_tbl,
   real    = tax_real_tbl,
   curacy  = tax_curacy_tbl
 )
 
-usethis::use_data(income_tax_series, overwrite = TRUE)
+usethis::use_data(income_tax, overwrite = TRUE)
+
