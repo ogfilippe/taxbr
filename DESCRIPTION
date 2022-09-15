@@ -15,8 +15,12 @@ Imports:
     modeltime,
     parsnip,
     purrr,
+    rlang,
+    rsample,
     tibble,
-    workflows
+    timetk,
+    workflows,
+    yardstick
 Depends: 
     R (>= 2.10)
 LazyData: true
