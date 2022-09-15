@@ -5,100 +5,49 @@
 library(tidyverse)
 library(taxbr)
 
+## dados
+series <- income_tax_data$parsed
 
-## Previsão 18 Meses à Frente ----
-get_18m_ahead <- function(budget, eta = 0.82) {
+## modelo
+fit_scenario_model <- function(.data, target, last_info, eta = 0.82) {
 
-  ###
-  present <- make_date(budget - 1, 6, 1)
+  clean <- \(v) v %>% as.list() %>% set_names(c("year", "half"))
+  from <- clean(last_info); to <- clean(target)
 
-  gdp_hat_curr <- gdp_expectations %>%
-    filter(dt == present, ref == (budget - 1)) %>%
-    pull(med)
+  g <- gdp_expectations %>%
+    filter(year == from$year, month == from$half * 6, ref == to$year) %>%
+    summarize(1 + med / 100 * eta) %>%
+    pull()
 
-  gdp_hat_next <- gdp_expectations %>%
-    filter(dt == present, ref == (budget)) %>%
-    pull(med)
-
-  ###
-  taxs2_prev <- income_tax %>%
-    filter(year == (budget - 2), month %in% 7:12)
-
-  taxs1_curr <- income_tax %>%
-    filter(year == (budget - 1), month %in% 1:6)
-
-  ###
-  taxs2hat_curr <- taxs2_prev %>%
-    mutate(g_fct = 1 + gdp_hat_curr / 100 * eta) %>%
-    summarize(dt  = dt %m+% months(12),
-              tax = tax * g_fct)
-
-  ###
-  taxhat_next <- taxs1_curr %>%
-    select(dt, tax) %>%
-    bind_rows(taxs2hat_curr) %>%
-    mutate(g_fct = 1 + gdp_hat_next / 100 * eta) %>%
-    summarize(dt  = dt %m+% months(12),
-              tax = tax * g_fct)
-
-  ###
-  taxs2hat_curr %>% bind_rows(taxhat_next)
+  .data %>%
+    filter(year(dt) == to$year - 1, semester(dt) == to$half) %>%
+    summarize(dt = dt %m+% months(12), across(-dt, ~ .x * g))
 }
 
 
-## Previsão 12 Meses à Frente ----
-get_12m_ahead <- function(budget, eta = 0.82) {
-
-  ###
-  present <- make_date(budget - 1, 12, 1)
-
-  gdp_hat_next <- gdp_expectations %>%
-    filter(dt == present, ref == (budget)) %>%
-    pull(med)
-
-  ###
-  tax_curr <- income_tax %>%
-    filter(year == (budget - 1), month %in% 1:12)
-
-  ###
-  tax_curr %>%
-    mutate(g_fct = 1 + gdp_hat_next / 100 * eta) %>%
-    summarize(dt  = dt %m+% months(12),
-              tax = tax * g_fct)
-}
+# Previsão 06 Meses à Frente ----
+res06 <- fit_scenario_model(series$h06, c(2021, 2), last_info = c(2021, 1))
 
 
-## Previsão 6 Meses à Frente ----
-get_06m_ahead <- function(budget, eta = 0.82) {
-
-  ###
-  present <- make_date(budget, 6, 1)
-
-  gdp_hat_curr <- gdp_expectations %>%
-    filter(dt == present, ref == (budget)) %>%
-    pull(med)
-
-  ###
-  taxs2_prev <- income_tax %>%
-    filter(year == (budget - 1), month %in% 7:12)
-
-  ###
-  taxs2_prev %>%
-    mutate(g_fct = 1 + gdp_hat_curr / 100 * eta) %>%
-    summarize(dt  = dt %m+% months(12),
-              tax = tax * g_fct)
-}
+# Previsão 12 Meses à Frente ----
+res12 <- map_dfr(
+  1:2,
+  ~ fit_scenario_model(series$h12, c(2021, .x), last_info = c(2020, 2))
+)
 
 
-## Resultados ----
-results_benchmark <- 2018:2021 %>%
-  set_names(~ paste0("benchmark", .x)) %>%
-  map(~ list(h18 = get_18m_ahead(.x),
-             h12 = get_12m_ahead(.x),
-             h06 = get_06m_ahead(.x)))
+# Previsão 18 Meses à Frente ----
+res18 <- map2_dfr(
+  2020:2021, 2:1,
+  ~ fit_scenario_model(series$h18, c(.x, .y), last_info = c(2020, 1))
+) %>%
+  bind_rows(
+    fit_scenario_model(., c(2021, 2), last_info = c(2020, 1))
+  )
 
-attr(results_benchmark, "session") <- devtools::session_info()
 
-results_benchmark %>%
-  write_rds(fs::path(here::here(), "results/benchmark.rds"))
+# Resultados ----
+res <- list(h06 = res06, h12 = res12, h18 = res18)
+res %>% move_to("results/benchmark.rds", here = TRUE, session = TRUE)
+
 
