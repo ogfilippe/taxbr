@@ -1,18 +1,18 @@
 #' Time Series Rolling Windows
 #'
 #' @export
-tk_rolling_windows <- function(.data, h, init_size, step_size, date_col = dt) {
-
-  date_col <- rlang::enquo(date_col)
+tk_rolling_windows <- function(.data, horizon, init_size, step_size) {
 
   splits <- .data |>
-    timetk::time_series_split(!!date_col, assess = h, cumulative = TRUE)
+    timetk::time_series_split(
+      dt, assess = horizon, cumulative = TRUE
+    )
 
   train <- rsample::training(splits)
 
   folds <- train |>
     timetk::time_series_cv(
-      !!date_col, initial = init_size, assess = h,
+      dt, initial = init_size, assess = horizon,
       skip = step_size, cumulative = TRUE
     )
 

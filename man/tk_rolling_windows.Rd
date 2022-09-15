@@ -4,7 +4,7 @@
 \alias{tk_rolling_windows}
 \title{Time Series Rolling Windows}
 \usage{
-tk_rolling_windows(.data, h, init_size, step_size, date_col = dt)
+tk_rolling_windows(.data, horizon, init_size, step_size)
 }
 \description{
 Time Series Rolling Windows
